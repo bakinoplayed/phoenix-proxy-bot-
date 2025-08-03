@@ -1,0 +1,31 @@
+name: Host Phoenix Proxy Bot 24/7
+
+on:
+  workflow_dispatch:  # Allow manual triggers
+  schedule:
+    - cron: '*/5 * * * *'  # Restart every 5 minutes to prevent timeouts
+
+jobs:
+  host-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run Phoenix Proxy Bot
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          # Keep the bot running with auto-restart
+          while true; do
+            python bot.py || echo "Bot crashed with exit code $?. Restarting..." >&2
+            sleep 1
+          done
